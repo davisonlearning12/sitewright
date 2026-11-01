@@ -16,7 +16,7 @@ button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(-
 button:hover{border-color:var(--acc)}button.p{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:600}
 button:focus-visible,input:focus-visible,[contenteditable]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 aside{background:var(--panel);border-right:1px solid var(--line);padding:12px;overflow:auto}
-aside h2{font-size:13px;margin:14px 0 6px;color:var(--mute);font-weight:600}
+.tabs{display:flex;gap:4px;position:sticky;top:-12px;margin:-12px -12px 10px;padding:10px 12px 8px;background:var(--panel);z-index:2;border-bottom:1px solid var(--line)}.tabs button{flex:1;padding:6px 4px;font-size:13px;border-color:transparent;background:transparent}.tabs button.on{border-color:var(--acc);font-weight:600;background:var(--bg)}.curpg{display:block;width:100%;text-align:left;font-size:13px;margin-bottom:8px;color:var(--mute)}.curpg b{color:var(--ink)}#pages{max-height:46vh;overflow:auto}aside h2{font-size:13px;margin:14px 0 6px;color:var(--mute);font-weight:600}
 .pg{display:flex;gap:4px;margin-bottom:4px}.pg button{flex:1;text-align:left}.pg button+button{flex:0 0 auto}.pg button.on{border-color:var(--acc);font-weight:600}
 .pal button{display:block;width:100%;text-align:left;margin-bottom:4px}
 main{overflow:auto;padding:20px}
@@ -34,11 +34,21 @@ dialog input{width:100%;padding:7px;border:1px solid var(--line);border-radius:6
 </style></head><body>
 <header><h1><button id="bhelp" class="brand" aria-haspopup="menu" aria-expanded="false" title="About Sitewright, help and tips">Sitewright <span aria-hidden="true">▾</span></button></h1><span id="rl"></span><span id="ds"></span><span id="msg"></span><button id="bundo" title="Undo (Ctrl+Z)">Undo</button><button id="bredo" title="Redo (Ctrl+Shift+Z)">Redo</button><button id="bprev">Preview</button><button id="bset" hidden>GitHub settings</button><button id="bsite" hidden>Your sites</button><button id="bload">Load site</button><button id="bclean">Clean up</button><button id="bpub" class="p">Publish</button><button id="bsign" class="p">Sign in with GitHub</button></header>
 <aside>
-<h2>Site title</h2><input id="stitle" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit">
-<h2>Theme</h2><select id="stheme" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit"></select><h2>Accent colour</h2><input id="sacc" type="color" value="#1f4fd8">
-<h2>Header banner</h2><details id="bndet"><summary id="bnsum"></summary><div id="bnctl"></div></details><h2>Pages</h2><div id="pages"></div><button id="addpg" style="width:100%">+ Add page</button>
-<h2>Add a block</h2><p class="hint">New blocks appear below the highlighted block, or at the end if none is selected.</p>
+<div class="tabs" role="tablist"><button type="button" data-tab="add" class="on" role="tab" aria-selected="true">Add</button><button type="button" data-tab="pages" role="tab" aria-selected="false">Pages</button><button type="button" data-tab="design" role="tab" aria-selected="false">Design</button></div>
+<div class="tabpane" id="tab-add">
+<button type="button" id="curpg" class="curpg" data-tab="pages" title="Go to the Pages tab"></button>
+<p class="hint">New blocks appear below the highlighted block, or at the end if none is selected.</p>
 <div class="pal"><button data-t="hero">Hero heading</button><button data-t="heading">Section heading</button><button data-t="text">Text</button><button data-t="image">Image</button><button data-t="button">Link button</button><button data-t="gallery">Gallery</button><button data-t="divider">Divider</button><button data-t="section">Section band</button><button data-t="fold">Collapsible section</button><button data-t="file">File download</button><button data-t="embed">Embed</button><button data-t="cols2">Two columns</button><button data-t="cols3">Three columns</button><button data-t="html">Custom HTML</button></div>
+</div>
+<div class="tabpane" id="tab-pages" hidden>
+<h2>Pages</h2><div id="pages"></div><button id="addpg" style="width:100%">+ Add page</button>
+<h2>Header banner</h2><details id="bndet"><summary id="bnsum"></summary><div id="bnctl"></div></details>
+</div>
+<div class="tabpane" id="tab-design" hidden>
+<h2>Site title</h2><input id="stitle" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit">
+<h2>Theme</h2><select id="stheme" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit"></select>
+<h2>Accent colour</h2><input id="sacc" type="color" value="#1f4fd8">
+</div>
 </aside>
 <main><noscript><p style="padding:20px">Sitewright is a free visual website builder that saves your site in your own GitHub account and publishes it with GitHub Pages. It needs JavaScript to run, so please turn it on and reload this page.</p></noscript><div id="site"></div><iframe id="pvf" title="Page preview" hidden sandbox="allow-scripts allow-popups"></iframe></main>
 
@@ -117,7 +127,7 @@ function blockHTML(b,edit,path){
 const siteCSS0=a=>`body{margin:0;font:18px/1.65 Georgia,serif;color:#1a1a1a;background:#fff}nav{padding:14px 28px;border-bottom:1px solid #e3e3e3;font:600 15px system-ui,sans-serif;display:flex;gap:18px;flex-wrap:wrap}nav a{color:#1a1a1a;text-decoration:none}nav a:hover{color:${a}}nav span{font-weight:800;margin-right:10px}.hero h1{font:800 clamp(2rem,6vw,3.4rem)/1.1 system-ui,sans-serif;margin:.2em 0}.hero p{font-size:1.25rem;color:#555;margin:0}img{max-width:100%;height:auto;border-radius:6px}.btn{display:inline-block;background:${a};color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font:600 16px system-ui,sans-serif}main>*{max-width:760px;margin-left:auto;margin-right:auto;padding:0 20px;margin-bottom:1.25em}main{padding:28px 0}.cols{display:grid;grid-template-columns:var(--g,repeat(var(--n),1fr));gap:28px;align-items:start}.cols>*{min-width:0}@media(max-width:640px){.cols{grid-template-columns:1fr}}h2{font:700 1.6rem/1.2 system-ui,sans-serif;margin:.3em 0}.txt a{color:${a};text-decoration:underline}.gal{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:10px}.gi{display:block;position:relative;aspect-ratio:var(--r);overflow:hidden;border-radius:6px}.gi img{width:100%;height:100%;object-fit:cover;display:block;border-radius:0}@media(max-width:640px){.gal{grid-template-columns:repeat(min(var(--n),3),1fr)}}#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:9;cursor:zoom-out}#lb[hidden]{display:none}#lb img{max-width:94vw;max-height:94vh;border-radius:4px}`;
 
 function render(){queueMicrotask(markAct);$("site").hidden=pv;$("pvf").hidden=!pv;$("bprev").textContent=pv?"Back to editing":"Preview";if(pv){try{preview()}catch(e){console.error(e)}}snapSoon();
- $("stitle").value=S.title;$("sacc").value=S.accent;bnPanel();$("stheme").innerHTML=Object.entries(THEMES).map(([k,v])=>`<option value="${k}"${(S.theme||"classic")===k?" selected":""}>${v.n}</option>`).join("");
+ $("stitle").value=S.title;$("sacc").value=S.accent;bnPanel();$("curpg").innerHTML="Editing page: <b>"+esc(S.pages[cur].name)+"</b> ▾";$("stheme").innerHTML=Object.entries(THEMES).map(([k,v])=>`<option value="${k}"${(S.theme||"classic")===k?" selected":""}>${v.n}</option>`).join("");
  $("pages").innerHTML=S.pages.map((p,i)=>`<div class="pg"><button data-p="${i}" title="${i===0?"Home page (always first)":"Open page"}" class="${i===cur?"on":""}">${i===0?"⌂ ":""}${esc(p.name)}</button>${i===cur&&i>0?`<button data-pm="-1" aria-label="Move page earlier" title="Move page earlier">↑</button>`:""}${i===cur&&i<S.pages.length-1?`<button data-pm="1" aria-label="Move page later" title="Move page later">↓</button>`:""}<button data-r="${i}" aria-label="Rename page ${esc(p.name)}" title="Rename">✎</button>${S.pages.length>1?`<button data-d="${i}" aria-label="Delete page ${esc(p.name)}">×</button>`:""}</div>`).join("");
  const bl=S.pages[cur].blocks;
  $("site").innerHTML=`<style>${siteCSS(S.accent).replace("body{margin:0;","#site{").replace(/body\{/g,"#site{").replace("main{padding:28px 0}","").replace(/main>\*/g,".blk>*")}.blk>*{padding:0!important;max-width:none!important;margin-bottom:0!important}</style>`+bannerHTML(cur,true)+(bl.length?bl.map((b,i)=>wrap(b,String(i))).join(""):`<div class="empty">This page is empty. Add a block from the left.</div>`);
@@ -357,21 +367,22 @@ start:`<h3>Getting started</h3>
 <li><b>Sign in</b> with the <b>Sign in with GitHub</b> button here, then click <b>Authorize</b>.</li>
 <li><b>Choose where Sitewright may save.</b> On the next screen click <b>Choose repositories on GitHub</b>, pick <b>Only select repositories</b>, choose the repository from step 1 and click <b>Install</b>.</li>
 <li><b>Pick your site</b> in <b>Your sites</b>. A new repository is marked "New site".</li>
-<li><b>Build your page.</b> Use the buttons on the left to add blocks. New blocks appear below the block you last clicked. Click any text to edit it, and select words to change their size or colour, or to add a link.</li>
+<li><b>Build your page.</b> Use the <b>Add</b> tab on the left to add blocks. New blocks appear below the block you last clicked. Click any text to edit it, and select words to change their size or colour, or to add a link.</li>
 <li><b>Check it</b> with <b>Preview</b>, which shows the page as visitors will see it.</li>
 <li><b>Publish.</b> Click <b>Publish</b>. A message shows your site's address, which looks like <code>https://yourusername.github.io/my-site/</code>. It can take a minute or two to appear for the first time.</li>
 <li><b>Come back any time.</b> Open Sitewright, sign in if it asks, and choose your site in <b>Your sites</b>. Everything loads as you left it.</li></ol>
 <p><b>Site still shows "404"?</b> On GitHub open your repository, go to <b>Settings</b>, then <b>Pages</b>, choose <b>Deploy from a branch</b>, pick <code>main</code> and <code>/ (root)</code>, and save.</p>`,
 tips:`<h3>Tips and shortcuts</h3>
 <ul>
-<li><b>Adding blocks:</b> click a block to highlight it. New blocks from the left panel appear directly underneath it.</li>
+<li><b>The left panel:</b> <b>Add</b> holds the blocks, <b>Pages</b> holds your page list and banners, and <b>Design</b> holds your site title, theme and accent colour.</li>
+<li><b>Adding blocks:</b> click a block to highlight it. New blocks from the <b>Add</b> tab appear directly underneath it.</li>
 <li><b>Text:</b> select some words and a small toolbar appears with bold, italic, link, size, colour and <b>Clear</b>.</li>
 <li><b>Links:</b> on text, images and buttons you can type a web address or pick one of your own pages.</li>
 <li><b>Undo and redo:</b> use the buttons at the top, or Ctrl+Z and Ctrl+Y (Cmd on a Mac) when you are not typing in a text box. <b>Ctrl+K</b> opens the link box for selected text.</li>
 <li><b>Images:</b> click an image to see its <b>Size</b>, <b>Position</b> and <b>Link</b> controls. You can also drag the grip in its bottom-right corner. Images in galleries are shrunk to a web-friendly size.</li>
 <li><b>Layout:</b> use <b>Columns</b> for side-by-side content, <b>Section band</b> for a coloured strip, <b>Collapsible section</b> for content that opens and closes, and <b>Divider</b> to separate parts of a page. Each has a <b>Remove, keep content</b> button if you change your mind.</li>
-<li><b>Pages:</b> use the arrows next to the open page to change the order, and the pencil to rename it. The first page (marked with a house) is always your home page.</li>
-<li><b>Banners:</b> add one banner for the whole site or give any page its own, under <b>Header banner</b>.</li>
+<li><b>Pages:</b> open the <b>Pages</b> tab, then use the arrows next to the open page to change the order, and the pencil to rename it. The first page (marked with a house) is always your home page.</li>
+<li><b>Banners:</b> add one banner for the whole site or give any page its own, under <b>Header banner</b> on the <b>Pages</b> tab.</li>
 <li><b>Drafts:</b> your unpublished work is saved in your browser as you go, and Sitewright offers to restore it next time.</li>
 <li><b>Clean up:</b> after renaming or deleting pages, use <b>Clean up</b> to remove old page files from your repository.</li>
 <li><b>Files:</b> downloads can be up to 25 MB each.</li></ul>`,
@@ -391,6 +402,9 @@ hmenu.onclick=ev=>{const b=ev.target.closest("[data-h]");if(!b)return;hmOpen(fal
 $("htabs").onclick=ev=>{const b=ev.target.closest("[data-h]");if(b)showHelp(b.dataset.h)};
 document.addEventListener("click",ev=>{if(!hmenu.hidden&&!hmenu.contains(ev.target))hmOpen(false)});
 document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&!hmenu.hidden)hmOpen(false)});
+function showTab(k){["add","pages","design"].forEach(t=>{$("tab-"+t).hidden=t!==k});
+ document.querySelectorAll(".tabs button").forEach(b=>{const on=b.dataset.tab===k;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false")})}
+document.querySelector("aside").addEventListener("click",ev=>{const b=ev.target.closest("[data-tab]");if(b)showTab(b.dataset.tab)});
 let last={i:-1,t:0};
 const ren=i=>{const n=prompt("Rename page",S.pages[i].name);if(n&&n.trim())S.pages[i].name=n.trim();render()};
 $("pages").onclick=ev=>{const t=ev.target;
