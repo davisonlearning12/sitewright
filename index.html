@@ -47,7 +47,12 @@ dialog input{width:100%;padding:7px;border:1px solid var(--line);border-radius:6
 <div class="tabpane" id="tab-design" hidden>
 <h2>Site title</h2><input id="stitle" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit">
 <h2>Theme</h2><select id="stheme" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit"></select>
-<h2>Accent colour</h2><input id="sacc" type="color" value="#1f4fd8">
+<h2>Main colour</h2><input id="sacc" type="color" value="#1f4fd8">
+<p class="hint">Links, buttons, the menu underline and coloured bands follow this.</p>
+<h2>Page background</h2><input id="cbg" type="color" value="#ffffff">
+<h2>Text colour</h2><input id="cfg" type="color" value="#1a1a1a"><p id="cnote" class="hint"></p>
+<details id="cdet"><summary>Fine-tune links and buttons</summary><label class="bl">Links <input id="clk" type="color" value="#1f4fd8"></label><label class="bl">Buttons <input id="cbt" type="color" value="#1f4fd8"></label></details>
+<button type="button" id="creset" style="margin-top:14px;width:100%">Reset colours to theme</button>
 </div>
 </aside>
 <main><noscript><p style="padding:20px">Sitewright is a free visual website builder that saves your site in your own GitHub account and publishes it with GitHub Pages. It needs JavaScript to run, so please turn it on and reload this page.</p></noscript><div id="site"></div><iframe id="pvf" title="Page preview" hidden sandbox="allow-scripts allow-popups"></iframe></main>
@@ -127,7 +132,7 @@ function blockHTML(b,edit,path){
 const siteCSS0=a=>`body{margin:0;font:18px/1.65 Georgia,serif;color:#1a1a1a;background:#fff}nav{padding:14px 28px;border-bottom:1px solid #e3e3e3;font:600 15px system-ui,sans-serif;display:flex;gap:18px;flex-wrap:wrap}nav a{color:#1a1a1a;text-decoration:none}nav a:hover{color:${a}}nav span{font-weight:800;margin-right:10px}.hero h1{font:800 clamp(2rem,6vw,3.4rem)/1.1 system-ui,sans-serif;margin:.2em 0}.hero p{font-size:1.25rem;color:#555;margin:0}img{max-width:100%;height:auto;border-radius:6px}.btn{display:inline-block;background:${a};color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font:600 16px system-ui,sans-serif}main>*{max-width:760px;margin-left:auto;margin-right:auto;padding:0 20px;margin-bottom:1.25em}main{padding:28px 0}.cols{display:grid;grid-template-columns:var(--g,repeat(var(--n),1fr));gap:28px;align-items:start}.cols>*{min-width:0}@media(max-width:640px){.cols{grid-template-columns:1fr}}h2{font:700 1.6rem/1.2 system-ui,sans-serif;margin:.3em 0}.txt a{color:${a};text-decoration:underline}.gal{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:10px}.gi{display:block;position:relative;aspect-ratio:var(--r);overflow:hidden;border-radius:6px}.gi img{width:100%;height:100%;object-fit:cover;display:block;border-radius:0}@media(max-width:640px){.gal{grid-template-columns:repeat(min(var(--n),3),1fr)}}#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:9;cursor:zoom-out}#lb[hidden]{display:none}#lb img{max-width:94vw;max-height:94vh;border-radius:4px}`;
 
 function render(){queueMicrotask(markAct);$("site").hidden=pv;$("pvf").hidden=!pv;$("bprev").textContent=pv?"Back to editing":"Preview";if(pv){try{preview()}catch(e){console.error(e)}}snapSoon();
- $("stitle").value=S.title;$("sacc").value=S.accent;bnPanel();$("curpg").innerHTML="Editing page: <b>"+esc(S.pages[cur].name)+"</b> ▾";$("stheme").innerHTML=Object.entries(THEMES).map(([k,v])=>`<option value="${k}"${(S.theme||"classic")===k?" selected":""}>${v.n}</option>`).join("");
+ $("stitle").value=S.title;$("sacc").value=S.accent;bnPanel();colourPanel();$("curpg").innerHTML="Editing page: <b>"+esc(S.pages[cur].name)+"</b> ▾";$("stheme").innerHTML=Object.entries(THEMES).map(([k,v])=>`<option value="${k}"${(S.theme||"classic")===k?" selected":""}>${v.n}</option>`).join("");
  $("pages").innerHTML=S.pages.map((p,i)=>`<div class="pg"><button data-p="${i}" title="${i===0?"Home page (always first)":"Open page"}" class="${i===cur?"on":""}">${i===0?"⌂ ":""}${esc(p.name)}</button>${i===cur&&i>0?`<button data-pm="-1" aria-label="Move page earlier" title="Move page earlier">↑</button>`:""}${i===cur&&i<S.pages.length-1?`<button data-pm="1" aria-label="Move page later" title="Move page later">↓</button>`:""}<button data-r="${i}" aria-label="Rename page ${esc(p.name)}" title="Rename">✎</button>${S.pages.length>1?`<button data-d="${i}" aria-label="Delete page ${esc(p.name)}">×</button>`:""}</div>`).join("");
  const bl=S.pages[cur].blocks;
  $("site").innerHTML=`<style>${siteCSS(S.accent).replace("body{margin:0;","#site{").replace(/body\{/g,"#site{").replace("main{padding:28px 0}","").replace(/main>\*/g,".blk>*")}.blk>*{padding:0!important;max-width:none!important;margin-bottom:0!important}</style>`+bannerHTML(cur,true)+(bl.length?bl.map((b,i)=>wrap(b,String(i))).join(""):`<div class="empty">This page is empty. Add a block from the left.</div>`);
@@ -238,8 +243,29 @@ const themeCSS=a=>{const T=THEMES[S.theme]||THEMES.classic,ac=T.navbg==="ACCENT"
  let x="";
  if(T.card)x=`.pb{background:${T.page}}.pb nav{border-bottom:0;padding-top:22px}.pb nav a{padding-bottom:4px;border-bottom:3px solid transparent}.pb nav a:hover,.pb nav a[aria-current]{border-bottom-color:${a}}.pb main{background:#fff;max-width:880px;margin:8px auto 40px;border-radius:18px;box-shadow:0 2px 16px rgba(0,0,0,.08);padding:44px 0;overflow:hidden}.hero h1{font-size:clamp(2.4rem,7vw,4.2rem);letter-spacing:-.03em;line-height:1.04}.th{letter-spacing:-.02em}@media(max-width:640px){.pb main{margin:6px 10px 24px;border-radius:14px}}`;
  return `body{font:${T.size}px/1.65 ${T.body};color:${T.fg};background:${T.bg}}nav{background:${nb};border-bottom:1px solid ${T.line}}nav a,nav span{color:${T.navfg}}nav a:hover{${ac?"opacity:.8":"color:"+a}}.hero h1,.th{font-family:${T.head}}.hero h1{font-weight:${T.hw}}.th{font-weight:${Math.min(T.hw,700)}}.hero p{color:${T.mute}}img,.gi{border-radius:${T.r}px}.btn{border-radius:${T.pill?"999px":T.r+"px"};font-family:${T.head}}`+bandCSS(a,T)+x};
-const siteCSS=a=>siteCSS0(a)+themeCSS(a);
-$("stheme").onchange=e=>{S.theme=e.target.value;S.accent=THEMES[S.theme].acc;render()};
+const siteCSS=a=>siteCSS0(a)+themeCSS(a)+customCSS(a);
+const hx=h=>{const n=parseInt(String(h).slice(1,7),16);return [n>>16&255,n>>8&255,n&255]};
+const toHex=(r,g,b)=>"#"+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("");
+const mix=(a,b,t)=>{const A=hx(a),B=hx(b);return toHex(A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t)};
+const rlum=h=>{const c=hx(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const ratio=(a,b)=>{const x=rlum(a),y=rlum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+function eff(){const T=THEMES[S.theme]||THEMES.classic,C=S.colors||{},a=S.accent;return {T,C,a,bg:C.bg||T.bg,fg:C.fg||T.fg,lk:C.links||a,bt:C.btn||a}}
+const customCSS=a=>{const {T,C,bg,fg,lk,bt}=eff(),ink=h=>lum(h)>.6?"#111111":"#ffffff";
+ let x=`.btn{background:${bt};color:${ink(bt)}}.txt a{color:${lk}}`;
+ if(T.navbg!=="ACCENT")x+=`nav a:hover{color:${lk}}`;
+ if(C.bg||C.fg){
+  x+=`body{color:${fg};background:${bg}}.hero p{color:${mix(fg,bg,.35)}}nav{border-bottom-color:${mix(fg,bg,.85)}}.bg-grey{background:${fg}12}`;
+  if(T.navbg!=="ACCENT")x+=`nav{background:${T.navbg==="transparent"?"transparent":mix(bg,fg,.06)}}nav a,nav span{color:${fg}}`;
+  if(T.card)x+=`.pb{background:${lum(bg)>.5?mix(bg,"#000000",.06):mix(bg,"#ffffff",.08)}}.pb main{background:${bg}}`}
+ return x};
+const setC=(k,v)=>{S.colors=Object.assign({},S.colors||{},{[k]:v});render()};
+$("cbg").oninput=e=>setC("bg",e.target.value);$("cfg").oninput=e=>setC("fg",e.target.value);
+$("clk").oninput=e=>setC("links",e.target.value);$("cbt").oninput=e=>setC("btn",e.target.value);
+$("creset").onclick=()=>{delete S.colors;S.accent=(THEMES[S.theme]||THEMES.classic).acc;render()};
+function colourPanel(){const E=eff();$("cbg").value=E.bg;$("cfg").value=E.fg;$("clk").value=E.lk;$("cbt").value=E.bt;
+ const r=ratio(E.fg,E.bg);$("cnote").textContent=r>=4.5?"✓ Easy to read":r>=3?"Fairly low contrast, so some people may find this hard to read.":"⚠ Hard to read. Choose a bigger difference between the text and the background."}
+
+$("stheme").onchange=e=>{S.theme=e.target.value;S.accent=THEMES[S.theme].acc;delete S.colors;render()};
 function bannerFor(i){const p=S.pages[i];if(p&&p.bn)return p.bn.off||!p.bn.src?null:p.bn;const B=S.banner;return B&&B.src&&!(B.show==="home"&&i!==0)?B:null}
 function bannerHTML(i,ed){const B=bannerFor(i);if(!B)return "";
  const src=esc(ed||PV?(imgs[B.src]||B.src):B.src);
@@ -374,7 +400,8 @@ start:`<h3>Getting started</h3>
 <p><b>Site still shows "404"?</b> On GitHub open your repository, go to <b>Settings</b>, then <b>Pages</b>, choose <b>Deploy from a branch</b>, pick <code>main</code> and <code>/ (root)</code>, and save.</p>`,
 tips:`<h3>Tips and shortcuts</h3>
 <ul>
-<li><b>The left panel:</b> <b>Add</b> holds the blocks, <b>Pages</b> holds your page list and banners, and <b>Design</b> holds your site title, theme and accent colour.</li>
+<li><b>The left panel:</b> <b>Add</b> holds the blocks, <b>Pages</b> holds your page list and banners, and <b>Design</b> holds your site title, theme and colours.</li>
+<li><b>Colours:</b> pick a <b>Main colour</b>, then change the page background and text colour if you like. Links and buttons follow the main colour unless you open <b>Fine-tune</b>. <b>Reset colours to theme</b> puts everything back. A note tells you if the text will be hard to read.</li>
 <li><b>Adding blocks:</b> click a block to highlight it. New blocks from the <b>Add</b> tab appear directly underneath it.</li>
 <li><b>Text:</b> select some words and a small toolbar appears with bold, italic, link, size, colour and <b>Clear</b>.</li>
 <li><b>Links:</b> on text, images and buttons you can type a web address or pick one of your own pages.</li>
